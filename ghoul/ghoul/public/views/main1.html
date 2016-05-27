@@ -48,6 +48,24 @@ body {
 	border: none;
 
 	font-size: 24px;
+
+	white-space:pre-wrap;  
+	white-space:-moz-pre-wrap;  
+	white-space:-pre-wrap;  
+	white-space:-o-pre-wrap;  
+	word-wrap:break-word;  
+}
+.view_date{
+	color: #D63484;
+	display: block;
+}
+.view_cmd{
+	color: #738A00;
+	display: block;
+}
+.view_msg{
+	font-size: 22px;
+	display: block;
 }
 .window{
 	padding: 20px;
@@ -57,9 +75,7 @@ body {
 <body>
 <div class="window">
 
-<textarea id="idView" readonly="readonly">食屍鬼 write by dark king
-
-</textarea>
+<pre id="idView"></pre>
 
 
 <div class="form-group has-success has-feedback view_input">
@@ -71,8 +87,8 @@ body {
 		
 </div>
 <script type="text/javascript">
-var DARK_MSG_MAX_LENGTH = 2048;
-var DARK_RECORDS_MAX_LENGTH = 3;
+var DARK_RECORDS_MAX_LENGTH = 50;
+var DARK_MSGS_MAX_LENGTH = 512;
 var circular_buffer = {};
 circular_buffer.create = function(params){
 	var obj = {};
@@ -243,6 +259,9 @@ var g_records = circular_buffer.create({
 	Max:DARK_RECORDS_MAX_LENGTH
 });
 var g_iterator = null;
+var g_msgs = circular_buffer.create({
+	Max:DARK_MSGS_MAX_LENGTH
+});
 var g_cmds = [
 	"screen max",
 	"screen dialog",
@@ -250,15 +269,15 @@ var g_cmds = [
 	"screen window",
 	
 	"clear",
-	"echo ",
-
+	
+	/*
 	"status",
 	"start",
 	"stop",
+	"show",
+	*/
 ];
 $(document).ready(function() {
-	
-
 	$("#idSpanCmd").click(function(){
 		$("#idInputCmd").focus();
 	});
@@ -292,13 +311,14 @@ $(document).ready(function() {
 				node.val(cmds[0]);
 				return false;
 			}else{
-				var strs = "";
+				var strs = "<i>";
 				for (var i = 0; i < cmds.length; i++) {
 					if(i !=0){
 						strs += "    ";
 					}
 					strs += cmds[i];
 				}
+				str += "</i>";
 				show_text(strs,"");
 			}
 			return false;
@@ -315,24 +335,27 @@ $(document).ready(function() {
 	resize();
 
 	init_strategy();
+	show_text("食屍鬼 write by dark king");
 
 	setTimeout(function(){
 		$("#idInputCmd").focus();
 	},500);
 });
 function resize(){
-	var height = $(window).height() - 80;
-	if(height < 80){
-		height = 80;
+	var height = $(window).height() - 100;
+	if(height < 100){
+		height = 100;
 	}
 	$("#idView").height(height);
 }
 
 function execute(cmd){
 	if(!g_strategy.execute(cmd)){
+		show_msg("未匹配到任何命令處理器",cmd)
 		return;
 	}
 	$("#idInputCmd").val("");
+	
 	//命令偏移
 	g_iterator = null;
 	//記錄命令
@@ -411,38 +434,41 @@ function date_string(d,fmt){
 	return fmt;
 }
 function show_text(text){
-	var node = $("#idView");
-	var str = node.text();
-	if(str.length > DARK_MSG_MAX_LENGTH){
-		str = str.substr(str.length - DARK_MSG_MAX_LENGTH / 2);
-	}
-
-	str += text + "\n\n";
-	
-	node.text(str);
-	node.scrollTop(node[0].scrollHeight - node.height());
+	var str = "<span class='view_msg'>" + text + "</span>";
+	g_msgs.push_back(str);
+	show_view();
 }
 function show_msg(msg,cmd){
-	var node = $("#idView");
-	var str = node.text();
-	if(str.length > DARK_MSG_MAX_LENGTH){
-		str = str.substr(str.length - DARK_MSG_MAX_LENGTH / 2);
-	}
+	var str = "";
 
 	var date = new Date();
 	
-	str += date_string(date,"yyyy-MM-dd hh:mm:ss") + "\n";
+	str += "<span class='view_date'>" + 
+		date_string(date,"yyyy-MM-dd hh:mm:ss") + 
+		"</span>";
 	if(cmd != undefined){
-		str += cmd + "\n";
+		str += "<span class='view_cmd'>" + cmd + "</span>";
 	}
-	str += msg + "\n\n";
+	str += "<span class='view_msg'>" + msg + "</span>";
 	
-	node.text(str);
+	g_msgs.push_back(str);
+	show_view();
+}
+function show_view(){
+	var iter = g_msgs.begin();
+	var data = g_msgs.get_data(iter);
+	var str = "";
+	while(data != null){
+		str += data;
+		g_msgs.next(iter)
+		data = g_msgs.get_data(iter);
+	}
+
+	var node = $("#idView");
+	node.html(str);
 	node.scrollTop(node[0].scrollHeight - node.height());
 }
-function clear_msg(msg){
-	$("#idView").text("");
-}
+
 function init_strategy(){
 	var strategy = g_strategy;
 	strategy._strategys = [];
@@ -487,8 +513,7 @@ function init_strategy(){
 
 		reg = new RegExp(/^clear$/i);
 		if(reg.test(cmd)){
-			clear_msg();
-			g_records.clear();
+			g_msgs.clear();
 			show_msg("",cmd);
 			return true;
 		}
