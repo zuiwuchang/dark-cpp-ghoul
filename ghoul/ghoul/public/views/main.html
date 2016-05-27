@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>食屍鬼</title>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="res:/css/#131">
+
+<!-- 可选的Bootstrap主题文件（一般不用引入） -->
+<link rel="stylesheet" href="res:/css/#132">
+
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="res:/js/#134"></script>
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="res:/js/#133"></script>
+
+<!-- jquery ui -->
+<link rel="stylesheet" type="text/css" href="res:/css/#136">
+<script type="text/javascript" src="res:/js/#137"></script>
+
+
+<style type="text/css">
+body {
+	background-color:#666;
+	color:#CCC;
+	font-size:18px;
+}
+.view_input{
+	margin-top: 10px;
+}
+
+
+#idSpanCmd{
+	cursor: pointer;
+}
+
+#idView{
+	width: 100%;
+	height: 100px;
+
+	background-color: #002029;
+	color: #DDE1E1;
+	padding-left: 8px;
+	padding-right: 8px;
+
+	border-radius: 9px;
+	border: none;
+
+	font-size: 24px;
+}
+.window{
+	padding: 20px;
+}
+</style>
+</head>
+<body>
+<div class="window">
+
+<textarea id="idView" readonly="readonly">食屍鬼 write by dark king
+
+</textarea>
+
+
+<div class="form-group has-success has-feedback view_input">
+	<div class="input-group">
+		<span class="input-group-addon" id="idSpanCmd">命令：</span>
+		<input type="text" class="form-control" id="idInputCmd">
+	</div>
+</div>
+		
+</div>
+<script type="text/javascript">
+var DARK_MSG_MAX_LENGTH = 2048;
+var DARK_RECORDS_MAX_LENGTH = 3;
+var circular_buffer = {};
+circular_buffer.create = function(params){
+	var obj = {};
+	if(params == undefined){
+		params = {};
+	}
+	this._set_default_params(params);
+	this._init_obj(obj,params);
+	return obj;
+};
+circular_buffer._set_default_params = function(params){
+	if(params.Max == undefined ||
+		typeof(params.Max) != "number" ||
+		params.Max < 1){
+		params.Max = 100;
+	}
+};
+circular_buffer._init_obj = function(obj,params){
+	obj._records = params.Max;
+	//不存在 標記
+	obj.npos = -1;
+	//環緩衝區
+	obj._datas = [];
+	obj._begin = obj.npos;
+	obj._end = 0;
+	//[begin,end)
+	//返回記錄 大小
+	obj.size = function(){
+		if(this._begin == this.npos){
+			return 0;
+		}else if(this._end > this._begin){
+			return this._end - this._begin;
+		}
+		return this._end + this._records - this._begin;
+	};
+	//返回 逆向 迭代器
+	obj._iterator = 1;
+	obj._riterator = 2;
+	obj.rbegin = function(){
+		var obj = {};
+		//設置迭代器 類型
+		obj._itype = this._riterator;
+
+		//初始化 偏移
+		if(this._begin == this.npos){
+			obj._pos = this.npos;
+			return obj;
+		}
+		obj._pos = this._end - 1;
+		if(obj._pos < 0){
+			obj._pos = this._records - 1;
+		}
+		return obj;
+	};
+	//返回迭代器
+	obj.begin = function(){
+		var obj = {};
+		//設置迭代器 類型
+		obj._itype = this._iterator;
+
+		//初始化 偏移
+		obj._pos = this._begin;
+		return obj;
+	};
+	//返回迭代器 是否可 移動
+	obj.has_next = function(iterator){
+		if(iterator._itype == this._riterator){
+			return this._ri_has_next(iterator);
+		}else if(iterator._itype == this._iterator){
+			return this._i_has_next(iterator);
+		}
+		return false;
+	};
+	obj.next = function(iterator){
+		if(iterator._itype == this._riterator){
+			return this._ri_next(iterator);
+		}else if(iterator._itype == this._iterator){
+			return this._i_next(iterator);
+		}
+		return false;
+	};
+	obj._ri_has_next = function(iterator){
+		if(iterator._pos == this.npos){
+			return false;
+		}
+		return iterator._pos != this._begin;
+	};
+	obj._i_has_next = function(iterator){
+		if(iterator._pos == this.npos){
+			return false;
+		}
+		var pos = iterator._pos + 1;
+		if(pos == this._records){
+			pos = 0;
+		}
+		return pos != this._end;
+	};
+	obj._ri_next = function(iterator){
+		if(!this._ri_has_next(iterator)){
+			iterator._pos = this.npos;
+			return false;
+		}
+		if(iterator._pos > this._begin){
+			--iterator._pos;
+		}else{
+			if(iterator._pos == 0){
+				iterator._pos = this._records - 1;
+			}else{
+				--iterator._pos;
+			}
+		}
+		return true;
+	};
+	obj._i_next = function(iterator){
+		if(!this._i_has_next(iterator)){
+			iterator._pos = this.npos;
+			return false;
+		}
+		++iterator._pos;
+		if(iterator._pos == this._records){
+			iterator._pos = 0;
+		}
+		return true;
+	};
+
+	obj.get_data = function(iterator){
+		if(iterator._pos == this.npos){
+			return null;
+		}
+		return this._datas[iterator._pos];
+	};
+
+
+	obj.push_back = function(data){
+		if(this._datas.length < this._records){
+			this._datas.push(data);
+			++this._end;
+			if(this._begin == this.npos){
+				this._begin = 0;
+			}
+			if(this._end == this._records){
+				this._end = 0;
+			}
+			return;
+		}
+
+		var pos = this._end++;
+		this._datas[pos] = data;
+		if(this._end == this._records){
+			this._end = 0;
+		}
+		if(pos == this._begin){
+			++this._begin;
+			if(this._begin == this._records){
+				this._begin = 0;
+			}
+		}
+	};
+	obj.clear = function(){
+		this._datas = [];
+		this._begin = this.npos;
+		this._end = 0;
+	};
+};
+
+var g_strategy = {};
+var g_records = circular_buffer.create({
+	Max:DARK_RECORDS_MAX_LENGTH
+});
+var g_pos = -1;
+var g_cmds = [
+	"screen max",
+	"screen dialog",
+	"screen full",
+	"screen window",
+	
+	"clear",
+
+	"status",
+	"start",
+	"stop",
+	"show",
+];
+$(document).ready(function() {
+	
+
+	$("#idSpanCmd").click(function(){
+		$("#idInputCmd").focus();
+	});
+	
+	$("#idInputCmd").keydown(function(e){
+
+		if(e.keyCode==13){
+			//回車
+			var cmd = $("#idInputCmd").val();
+			cmd = $.trim(cmd);
+			execute(cmd);
+		}else if(e.keyCode == 9){
+			//tab
+			var cmds = [];
+			var node = $("#idInputCmd");
+			var str = node.val();
+			str = $.trim(str);
+			if(str == ""){
+				return true;
+			}
+			for (var i = 0; i < g_cmds.length; ++i) {
+				var cmd = $.trim(g_cmds[i]);
+				
+				if(new RegExp("^" + str,"i").test(cmd)){
+					cmds.push(g_cmds[i]);
+				}
+			}
+			if(cmds.length == 0){
+				return false;
+			}else if(cmds.length == 1){
+				node.val(cmds[0]);
+				return false;
+			}else{
+				var strs = "";
+				for (var i = 0; i < cmds.length; i++) {
+					if(i !=0){
+						strs += "    ";
+					}
+					strs += cmds[i];
+				}
+				show_text(strs,"");
+			}
+			return false;
+		}else if(e.keyCode==38){
+			//上翻命令
+			get_pre_cmd();
+		}
+		else if(e.keyCode==40){
+			//下翻命令
+			get_next_cmd();
+		}
+	});
+	$(window).resize(resize);
+	resize();
+
+	init_strategy();
+
+	setTimeout(function(){
+		$("#idInputCmd").focus();
+	},500);
+});
+function resize(){
+	var height = $(window).height() - 80;
+	if(height < 80){
+		height = 80;
+	}
+	$("#idView").height(height);
+}
+
+function execute(cmd){
+	if(!g_strategy.execute(cmd)){
+		return;
+	}
+	//命令偏移
+	g_pos = -1;
+	//記錄命令
+	var iter = g_records.rbegin();
+	var data = g_records.get_data(iter);
+	
+	if(data == null || data != cmd){
+		g_records.push_back(cmd);
+	}
+}
+function get_pre_cmd(){
+	var data = null;
+	if(g_pos == -1){
+		var iter = g_records.rbegin();
+		data = g_records.get_data(iter);
+	}
+
+	if(data != null){
+		$("#idInputCmd").val(data);
+	}
+}
+function get_next_cmd(){
+	
+}
+function date_string(d,fmt){
+	var o = {
+		"M+": d.getMonth() + 1, //月
+		"d+": d.getDate(), //日
+		"h+": d.getHours(), //小時 
+		"m+": d.getMinutes(), //分 
+		"s+": d.getSeconds(), //秒 
+		"q+": Math.floor((d.getMonth() + 3) / 3), //季度 
+		"S": d.getMilliseconds() //毫秒 
+	};
+
+	if(/(y+)/.test(fmt)){
+		fmt = fmt.replace(RegExp.$1,
+			(d.getFullYear() + "").substr(4 - RegExp.$1.length)
+			);
+	}
+	for(var k in o){
+		if(new RegExp("(" + k + ")").test(fmt)){
+			fmt = fmt.replace(RegExp.$1,
+				(RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+		}
+	}
+	return fmt;
+}
+function show_text(text){
+	var node = $("#idView");
+	var str = node.text();
+	if(str.length > DARK_MSG_MAX_LENGTH){
+		str = str.substr(str.length - DARK_MSG_MAX_LENGTH / 2);
+	}
+
+	str += text + "\n\n";
+	
+	node.text(str);
+	node.scrollTop(node[0].scrollHeight - node.height());
+}
+function show_msg(msg,cmd){
+	var node = $("#idView");
+	var str = node.text();
+	if(str.length > DARK_MSG_MAX_LENGTH){
+		str = str.substr(str.length - DARK_MSG_MAX_LENGTH / 2);
+	}
+
+	var date = new Date();
+	
+	str += date_string(date,"yyyy-MM-dd hh:mm:ss") + "\n";
+	if(cmd != undefined){
+		str += cmd + "\n";
+	}
+	str += msg + "\n\n";
+	
+	node.text(str);
+	node.scrollTop(node[0].scrollHeight - node.height());
+}
+function clear_msg(msg){
+	$("#idView").text("");
+}
+function init_strategy(){
+	var strategy = g_strategy;
+	strategy._strategys = [];
+	strategy.execute = function(cmd){
+		for (var i = 0; i < this._strategys.length; ++i) {
+			var obj = this._strategys[i];
+			if(obj.execute(cmd)){
+				return true;
+			}
+		}
+		return false;
+	};
+
+	var system_strategy = {};
+	system_strategy.execute = function(cmd){
+		return external.Execute(cmd);
+	};
+	strategy._strategys.push(system_strategy);
+
+	var view_strategy = {};
+	view_strategy.execute = function(cmd){
+		var reg = new RegExp(/^show$/i);
+		if(reg.test(cmd)){
+			var str = "";
+			var iter = g_records.begin();
+			var data = g_records.get_data(iter);
+			while(data != null){
+				str += data + ","
+				g_records.next(iter)
+				data = g_records.get_data(iter);
+			}
+			show_msg(str,"show");
+			return true;
+		}
+
+		reg = new RegExp(/^clear$/i);
+		if(reg.test(cmd)){
+			clear_msg();
+			g_records.clear();
+			show_msg("","clear");
+			return true;
+		}
+	};
+	strategy._strategys.push(view_strategy);
+}
+</script>
+</body>
+</html>
