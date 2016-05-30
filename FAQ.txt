@@ -1,0 +1,7 @@
+依賴庫
+
+boost
+	智能指針 字符串處理 foreach
+
+jsoncpp
+	json讀寫

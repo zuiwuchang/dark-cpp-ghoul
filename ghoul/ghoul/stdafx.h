@@ -59,3 +59,30 @@
 #endif
 
 
+#include <boost/smart_ptr.hpp>
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/serialization/singleton.hpp>
+
+#include <dark-cpp/windows/strings/utf.hpp>
+
+#include <string>
+#include <vector>
+#include <fstream>
+#include<sstream>
+
+#define DARK_MSG_NOTIFYICON WM_USER + 1102
+
+#include <json/json.h>
+#ifdef _DEBUG
+#pragma comment(lib,"json_vc100_libmdd.lib")
+#else
+#pragma comment(lib,"json_vc100_libmd.lib")
+#endif
+
+#include <duktape-1.5.0/duktape.h>
+#ifdef _DEBUG
+#pragma comment(lib,"duktape-1.5.0d.lib")
+#else
+#pragma comment(lib,"duktape-1.5.0.lib")
+#endif

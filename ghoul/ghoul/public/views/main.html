@@ -20,7 +20,6 @@
 <script type="text/javascript" src="res:/js/#137"></script>
 
 
-
 <style type="text/css">
 body {
 	background-color:#666;
@@ -265,9 +264,10 @@ var g_msgs = circular_buffer.create({
 });
 var g_cmds = [
 	"screen max",
-	"screen dialog",
+	"screen hide",
+	"screen restore",
 	"screen full",
-	"screen window",
+	"exit",
 	
 	"clear",
 	
@@ -313,14 +313,35 @@ $(document).ready(function() {
 				return false;
 			}else{
 				var strs = "<i>";
-				for (var i = 0; i < cmds.length; i++) {
+				for (var i = 0; i < cmds.length; ++i) {
 					if(i !=0){
 						strs += "    ";
 					}
 					strs += cmds[i];
 				}
-				str += "</i>";
+				strs += "</i>";
 				show_text(strs,"");
+				var find = false;
+				var c;
+				for(var i = str.length;;++i){
+					for (var j = 0; j < cmds.length; ++j) {
+						if(i >= cmds[j].length){
+							find = true;
+							break;
+						}
+						if(j ==0){
+							c = cmds[j][i].toLowerCase();
+						}else if(c != cmds[j][i].toLowerCase()){
+							find = true;
+							break;
+						}
+					}
+					if(find){
+						str = cmds[0].substr(0,i);
+						$("#idInputCmd").val(str);
+						break;
+					}
+				}
 			}
 			return false;
 		}else if(e.keyCode==38){
@@ -341,6 +362,12 @@ $(document).ready(function() {
 	setTimeout(function(){
 		$("#idInputCmd").focus();
 	},500);
+	var json = JSON.parse(external.GetCmds());
+	$.each(json, function(i,str){
+		if(typeof(str) == "string"){
+			g_records.push_back(str);
+		}
+	});
 });
 function resize(){
 	var height = $(window).height() - 100;
@@ -486,7 +513,7 @@ function init_strategy(){
 	var system_strategy = {};
 	system_strategy.execute = function(cmd){
 		return external.Execute(cmd);
-		return false;
+		//return false;
 	};
 	strategy._strategys.push(system_strategy);
 
@@ -506,6 +533,13 @@ function init_strategy(){
 			return true;
 		}
 
+		reg = new RegExp(/^get_cmds$/i);
+		if(reg.test(cmd)){
+			var str = get_cmds();
+			show_msg(str,cmd);
+			return true;
+		}
+
 		reg = new RegExp(/^push/i);
 		if(reg.test(cmd)){
 			show_msg("",cmd);
@@ -520,6 +554,18 @@ function init_strategy(){
 		}
 	};
 	strategy._strategys.push(view_strategy);
+}
+function get_cmds(){
+	var cmds = [];
+	var iter = g_records.begin();
+	var data = g_records.get_data(iter);
+	while(data != null){
+		cmds.push(data);
+		g_records.next(iter)
+		data = g_records.get_data(iter);
+	}
+	var str = JSON.stringify(cmds);
+	return str;
 }
 </script>
 </body>

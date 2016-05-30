@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include "strategy_interface.h"
 
 // CghoulDlg ∂‘ª∞øÚ
 class CghoulDlg : public CDHtmlDialog
@@ -36,11 +36,23 @@ public:
 	afx_msg void OnDebugReload();
 
 	virtual void OnOK();
+	NOTIFYICONDATA _notifyicon;
+	CMenu m_menu;
 protected:
 	inline BOOL CanAccessExternal()
 	{
 		return TRUE;
 	}
 	BOOL JsExecute(VARIANT& cmd);
+	VARIANT JsGetCmds();
+	std::vector<strategy_t> _strategys;
 	DECLARE_DISPATCH_MAP()  
+	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+	virtual void OnCancel();
+	//±£¥Ê√¸¡Ó”õ‰õ
+	void SaveCmds();
+public:
+	afx_msg void OnPopRun();
+	afx_msg void OnPopAbout();
+	afx_msg void OnPopExit();
 };

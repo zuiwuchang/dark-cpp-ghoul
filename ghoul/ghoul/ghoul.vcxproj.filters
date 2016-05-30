@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="strategy">
+      <UniqueIdentifier>{82463a3a-9884-4cd2-adba-fc09b42adda4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="singleton">
+      <UniqueIdentifier>{b8765eb9-a5be-4b3e-8407-d71ddc481217}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="plugins">
+      <UniqueIdentifier>{0f408f93-909e-40ba-903f-feb69d85cb4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -46,6 +55,18 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="strategy_interface.h">
+      <Filter>strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="strategy_window.h">
+      <Filter>strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="singleton_cnf.h">
+      <Filter>singleton</Filter>
+    </ClInclude>
+    <ClInclude Include="plugins.h">
+      <Filter>plugins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ghoul.cpp">
@@ -56,6 +77,18 @@
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="strategy_interface.cpp">
+      <Filter>strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="strategy_window.cpp">
+      <Filter>strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="singleton_cnf.cpp">
+      <Filter>singleton</Filter>
+    </ClCompile>
+    <ClCompile Include="plugins.cpp">
+      <Filter>plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

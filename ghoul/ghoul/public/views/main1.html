@@ -264,9 +264,10 @@ var g_msgs = circular_buffer.create({
 });
 var g_cmds = [
 	"screen max",
-	"screen dialog",
+	"screen hide",
+	"screen restore",
 	"screen full",
-	"screen window",
+	"exit",
 	
 	"clear",
 	
@@ -312,14 +313,35 @@ $(document).ready(function() {
 				return false;
 			}else{
 				var strs = "<i>";
-				for (var i = 0; i < cmds.length; i++) {
+				for (var i = 0; i < cmds.length; ++i) {
 					if(i !=0){
 						strs += "    ";
 					}
 					strs += cmds[i];
 				}
-				str += "</i>";
+				strs += "</i>";
 				show_text(strs,"");
+				var find = false;
+				var c;
+				for(var i = str.length;;++i){
+					for (var j = 0; j < cmds.length; ++j) {
+						if(i >= cmds[j].length){
+							find = true;
+							break;
+						}
+						if(j ==0){
+							c = cmds[j][i].toLowerCase();
+						}else if(c != cmds[j][i].toLowerCase()){
+							find = true;
+							break;
+						}
+					}
+					if(find){
+						str = cmds[0].substr(0,i);
+						$("#idInputCmd").val(str);
+						break;
+					}
+				}
 			}
 			return false;
 		}else if(e.keyCode==38){
