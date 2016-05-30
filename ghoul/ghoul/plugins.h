@@ -1,11 +1,14 @@
 #pragma once
 #include <dark-cpp/js/duktape/duktape.hpp>
+#include "singleton_cnf.h"
+
+
 class plugins
 {
 public:
-	plugins(void);
+	plugins();
 	~plugins(void);
-
+	bool init(module_info_t node);
 protected:
 	//²å¼þ ß\ÐÐ ­h¾³
 	dark::js::duktape::context _ctx;
@@ -23,6 +26,7 @@ protected:
 	//_has_status = true
 	bool _has_input;
 	bool _has_autocomplete;
+
 public:
 	inline const std::wstring& name()const
 	{
@@ -54,5 +58,9 @@ public:
 	{
 		return _has_autocomplete;
 	}
+
+protected:
+	bool init_modules(module_info_t info);
 };
 
+typedef boost::shared_ptr<plugins> plugins_t;

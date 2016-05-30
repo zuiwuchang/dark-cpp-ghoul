@@ -14,39 +14,82 @@ singleton_cnf::~singleton_cnf(void)
 }
 void singleton_cnf::load()
 {
-	std::ifstream inf("data/my.json",std::ios::binary | std::ios::in);
-	if(!inf.is_open())
+	try
 	{
-		return;
-	}
-	std::string utf8;
-	while(true)
-	{
-		char c;
-		inf.get(c);
-		if(inf.eof())
-		{
-			break;
-		}
-		utf8.push_back(c);
-	}
-	Json::Value root;
-	Json::Reader reader;
-	if(!reader.parse(utf8.data(),utf8.data() + utf8.size(),root) || !root.isObject())
-	{
-		return;
-	}
-	Json::Value item = root["Run"];
-	if(item.isBool() && item.asBool())
-	{
-		run(true);
-	}
-	else
-	{
-		run(false);
-	}
+		boost::property_tree::ptree tree;
+		boost::property_tree::read_json("data/my.json",tree);
 
-	
+		_run = tree.get<bool>("run",false);
+
+		auto& modules = tree.get_child("modules");
+		BOOST_FOREACH(auto& module,modules)
+		{
+			if(module.second.get<bool>("disable",false))
+			{
+				continue;
+			}
+			std::string utf8 = module.second.get<std::string>("path","");
+			boost::algorithm::trim(utf8);
+			if(utf8.empty())
+			{
+				continue;
+			}
+			module_info_t node = boost::make_shared<module_info>();
+			node->js = module.second.get<bool>("js",false);
+			if(node->js)
+			{
+				node->path = dark::windows::utf::to_utf16(utf8);
+			}
+			else
+			{
+				node->module = LoadLibrary(dark::windows::utf::to_utf16(utf8).c_str());
+				if(!node->module)
+				{
+					continue;
+				}
+				node->init_module = (init_module_t)GetProcAddress(node->module,"init_module");
+				if(!node->init_module)
+				{
+					continue;
+				}
+			}
+			_modules.push_back(node);
+		}
+
+		auto& plugins = tree.get_child("plugins");
+		BOOST_FOREACH(auto& plugin,plugins)
+		{
+			if(plugin.second.get<bool>("disable",false))
+			{
+				continue;
+			}
+			std::string utf8 = plugin.second.get<std::string>("path","");
+			boost::algorithm::trim(utf8);
+			if(utf8.empty())
+			{
+				continue;
+			}
+			module_info_t node = boost::make_shared<module_info>();
+			node->js = plugin.second.get<bool>("js",false);
+			if(node->js)
+			{
+				node->path = dark::windows::utf::to_utf16(utf8);
+			}
+			else
+			{
+				node->module = LoadLibrary(dark::windows::utf::to_utf16(utf8).c_str());
+				if(!node->module)
+				{
+					continue;
+				}
+			}
+			_plugins.push_back(node);
+		}
+	}
+	catch(...)
+	{
+	}
+	run(_run);
 }
 void singleton_cnf::run(bool ok)
 {
@@ -82,4 +125,24 @@ void singleton_cnf::run(bool ok)
 	}
 
 	_run = ok;
+}
+void singleton_cnf::foreach_modules(boost::function<bool(module_info_t)> call)
+{
+	BOOST_FOREACH(module_info_t node,_modules)
+	{
+		if(call(node))
+		{
+			return;
+		}
+	}
+}
+void singleton_cnf::foreach_plugins(boost::function<bool(module_info_t)> call)
+{
+	BOOST_FOREACH(module_info_t node,_plugins)
+	{
+		if(call(node))
+		{
+			return;
+		}
+	}
 }

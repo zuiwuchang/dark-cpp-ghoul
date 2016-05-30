@@ -4,6 +4,8 @@
 
 #pragma once
 #include "strategy_interface.h"
+#include "plugins.h"
+#include "singleton_cnf.h"
 
 // CghoulDlg ¶Ô»°¿ò
 class CghoulDlg : public CDHtmlDialog
@@ -55,4 +57,7 @@ public:
 	afx_msg void OnPopRun();
 	afx_msg void OnPopAbout();
 	afx_msg void OnPopExit();
+
+	std::vector<plugins_t> _plugins;
+	bool InitPlugins(module_info_t info);
 };

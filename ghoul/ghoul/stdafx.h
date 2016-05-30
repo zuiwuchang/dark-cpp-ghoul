@@ -63,6 +63,10 @@
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/serialization/singleton.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 
 #include <dark-cpp/windows/strings/utf.hpp>
 
@@ -86,3 +90,5 @@
 #else
 #pragma comment(lib,"duktape-1.5.0.lib")
 #endif
+
+

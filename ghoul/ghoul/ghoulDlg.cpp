@@ -8,7 +8,9 @@
 #include "afxdialogex.h"
 #include "strategy_window.h"
 
-#include "singleton_cnf.h"
+#ifdef _DEBUG
+#include <dark/debug/console.hpp>
+#endif
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -113,6 +115,10 @@ BOOL CghoulDlg::OnInitDialog()
 	EnableAutomation();
 	SetExternalDispatch(GetIDispatch(TRUE));
 
+#ifdef _DEBUG
+	dark::console::get_mutable_instance().alloc();
+#endif
+
 	singleton_cnf& cnf = singleton_cnf::get_mutable_instance();
 	cnf.load();
 
@@ -135,6 +141,9 @@ BOOL CghoulDlg::OnInitDialog()
     wcscpy_s(_notifyicon.szTip,L"食屍鬼");
     _notifyicon.hIcon = LoadIcon(AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME));
 	Shell_NotifyIcon(NIM_ADD,&_notifyicon);
+
+	//初始化插件
+	cnf.foreach_plugins(boost::bind(&CghoulDlg::InitPlugins,this,_1));
 
 	//註冊 命令算法
 	_strategys.push_back(boost::make_shared<strategy_window>(this));
@@ -351,4 +360,13 @@ void CghoulDlg::OnPopAbout()
 void CghoulDlg::OnPopExit()
 {
 	PostMessage(WM_CLOSE);
+}
+bool CghoulDlg::InitPlugins(module_info_t info)
+{
+	plugins_t node = boost::make_shared<plugins>();
+	if(node->init(info))
+	{
+		_plugins.push_back(node);
+	}
+	return false;
 }
