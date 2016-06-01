@@ -7,6 +7,9 @@
 #include "ghoulDlg.h"
 #include "afxdialogex.h"
 #include "strategy_window.h"
+#include "strategy_cmds.h"
+#include "events.h"
+
 
 #ifdef _DEBUG
 #include <dark/debug/console.hpp>
@@ -58,12 +61,15 @@ END_DHTML_EVENT_MAP()
 BEGIN_DISPATCH_MAP(CghoulDlg, CDHtmlDialog)   
     DISP_FUNCTION(CghoulDlg, "Execute",  JsExecute, VT_BOOL, VTS_VARIANT) 
 	DISP_FUNCTION(CghoulDlg, "GetCmds",  JsGetCmds, VT_VARIANT,VTS_NONE)
+	DISP_FUNCTION(CghoulDlg, "GetAutocompletes",  JsGetAutocompletes, VT_VARIANT,VTS_NONE)
 END_DISPATCH_MAP()  
 
 CghoulDlg::CghoulDlg(CWnd* pParent /*=NULL*/)
 	: CDHtmlDialog(CghoulDlg::IDD, CghoulDlg::IDH, pParent)
 {
-	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON1);
+
+	_reg_show = boost::xpressive::wsregex::compile(L"^show\\s+.+",boost::xpressive::icase);
 }
 
 void CghoulDlg::DoDataExchange(CDataExchange* pDX)
@@ -139,20 +145,56 @@ BOOL CghoulDlg::OnInitDialog()
     _notifyicon.uID = 1;
     _notifyicon.hWnd = m_hWnd;
     wcscpy_s(_notifyicon.szTip,L"食屍鬼");
-    _notifyicon.hIcon = LoadIcon(AfxGetInstanceHandle(),MAKEINTRESOURCE(IDR_MAINFRAME));
+    _notifyicon.hIcon = LoadIcon(AfxGetInstanceHandle(),MAKEINTRESOURCE(IDI_ICON1));
 	Shell_NotifyIcon(NIM_ADD,&_notifyicon);
 
 	//初始化插件
 	cnf.foreach_plugins(boost::bind(&CghoulDlg::InitPlugins,this,_1));
+	
+
 
 	//註冊 命令算法
 	_strategys.push_back(boost::make_shared<strategy_window>(this));
+	_strategys.push_back(boost::make_shared<strategy_cmds>(this,&_plugins));
+	
 	return FALSE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
+
 BOOL CghoulDlg::JsExecute(VARIANT& cmd)
 {
 	CString wstr = cmd;
 	std::wstring wcs = wstr.GetBuffer();
+	if(boost::xpressive::regex_match(wcs,_reg_show))
+	{
+		std::wstring name = wcs.substr(wcslen(L"show"));
+		boost::algorithm::trim(name);
+		BOOST_AUTO(find,_dlgs.find(name));
+		if(find != _dlgs.end())
+		{
+			find->second->ShowWindow(SW_SHOW);
+			find->second->CallJsSetFocus();
+		}
+		else
+		{
+			BOOST_AUTO(find_plugins,_plugins.find(name));
+			if(find_plugins == _plugins.end())
+			{
+				return TRUE;
+			}
+			plugins_t node = find_plugins->second;
+			if(node->has_show())
+			{
+				boost::shared_ptr<CPluginsDialog> dlg = boost::make_shared<CPluginsDialog>(this);
+				if(dlg && dlg->Create(CPluginsDialog::IDD,this))
+				{
+					dlg->SetPlugins(node.get());
+					_dlgs[node->name()] = dlg;
+					dlg->SetWindowText(name.c_str());
+				}
+			}
+		}
+		return TRUE;
+	}
 	BOOST_FOREACH(strategy_t strategy,_strategys)
 	{
 		if(strategy->execute(wcs))
@@ -161,6 +203,15 @@ BOOL CghoulDlg::JsExecute(VARIANT& cmd)
 		}
 	}
 	return FALSE;
+}
+void CghoulDlg::CallJsSetFocus()
+{
+	CComDispatchDriver spScript;
+	if(S_OK != m_spHtmlDoc->get_Script(&spScript))
+	{
+		return;
+	}
+	spScript.Invoke0(L"set_focus");
 }
 VARIANT CghoulDlg::JsGetCmds()
 {
@@ -191,6 +242,45 @@ VARIANT CghoulDlg::JsGetCmds()
 	}
 
 	CComVariant rs = str;
+	return rs;
+}
+VARIANT CghoulDlg::JsGetAutocompletes()
+{
+	CComVariant rs = L"[]";
+	//為插件 添加 命令 提示
+	typedef std::pair<std::wstring,plugins_t> plugins_node_t;
+	Json::Value arrays;
+	std::string tmp;
+	BOOST_FOREACH(const plugins_node_t& plugins, _plugins)
+	{
+		std::string utf8_name = dark::windows::utf::to_utf8(plugins.first);
+
+		tmp = "status " + utf8_name;
+		arrays.append(tmp);
+		
+
+		if(plugins.second->has_start())
+		{
+			tmp = "start " + utf8_name;
+			arrays.append(tmp);
+		}
+		if(plugins.second->has_stop())
+		{
+			tmp = "stop " + utf8_name;
+			arrays.append(tmp);
+		}
+
+		if(plugins.second->has_show())
+		{
+			tmp = "show " + utf8_name;
+			arrays.append(tmp);
+		}
+	}
+	if(!arrays.empty())
+	{
+		rs = dark::windows::utf::to_utf16(arrays.toStyledString()).c_str();
+
+	}
 	return rs;
 }
 void CghoulDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -260,7 +350,7 @@ HRESULT CghoulDlg::OnButtonCancel(IHTMLElement* /*pElement*/)
 
 void CghoulDlg::OnDebugReload()
 {
-	this->Navigate(L"file:///F:/project/c++/vs2010/dark-cpp-ghoul/ghoul/ghoul/public/views/main1.html");
+	Navigate(L"file:///F:/project/c++/vs2010/dark-cpp-ghoul/ghoul/ghoul/public/views/main1.html");
 }
 
 
@@ -281,6 +371,7 @@ LRESULT CghoulDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 				ModifyStyle(0,WS_CAPTION|WS_THICKFRAME,SWP_FRAMECHANGED);
 				ShowWindow(SW_RESTORE);
 				SetForegroundWindow();
+				CallJsSetFocus();
 			}
 
 		}
@@ -292,15 +383,48 @@ LRESULT CghoulDlg::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 			lp->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON, point.x, point.y, this);
 		}
 	}
+	else if(DARK_EVENT_NEW == message)
+	{
+		events& es = singleton_events::get_mutable_instance();
+		event_info_t e = es.pop();
+		while(e)
+		{
+			if(DARK_EVENT_SHOW_MSG == e->code)
+			{
+				CallJsShowMsg(e->msg,e->cmd);
+			}
+			e = es.pop();
+		}
+	}
 	return CDHtmlDialog::WindowProc(message, wParam, lParam);
 }
-
+void CghoulDlg::CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd)
+{
+	CComDispatchDriver spScript;
+	if(S_OK != m_spHtmlDoc->get_Script(&spScript))
+	{
+		return;
+	}
+	CComVariant varMsg = msg.c_str();
+	CComVariant varCmd = cmd.c_str();
+	spScript.Invoke2(L"show_msg",&varMsg,&varCmd);
+}
 
 void CghoulDlg::OnCancel()
 {
 	// TODO: 在此添加专用代码和/或调用基类
 	SaveCmds();
 	Shell_NotifyIconW(NIM_DELETE,&_notifyicon);
+
+	_strategys.clear();
+	BOOST_FOREACH(const auto& dlg,_dlgs)
+	{
+		dlg.second->SaveCmds();
+	}
+	_plugins.clear();
+
+	_dlgs.clear();
+
 	CDHtmlDialog::OnCancel();
 }
 void CghoulDlg::SaveCmds()
@@ -366,7 +490,9 @@ bool CghoulDlg::InitPlugins(module_info_t info)
 	plugins_t node = boost::make_shared<plugins>();
 	if(node->init(info))
 	{
-		_plugins.push_back(node);
+		_plugins[node->name()] = node;
 	}
 	return false;
 }
+
+

@@ -67,13 +67,18 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/xpressive/xpressive.hpp>
+#include <boost/typeof/typeof.hpp>
+#include <boost/thread.hpp>
 
 #include <dark-cpp/windows/strings/utf.hpp>
 
 #include <string>
 #include <vector>
 #include <fstream>
-#include<sstream>
+#include <sstream>
+#include <list>
 
 #define DARK_MSG_NOTIFYICON WM_USER + 1102
 
@@ -91,4 +96,5 @@
 #pragma comment(lib,"duktape-1.5.0.lib")
 #endif
 
+#define DARK_EVENT_NEW WM_USER + 1103
 

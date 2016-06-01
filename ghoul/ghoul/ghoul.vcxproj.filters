@@ -22,6 +22,9 @@
     <Filter Include="plugins">
       <UniqueIdentifier>{0f408f93-909e-40ba-903f-feb69d85cb4a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="events">
+      <UniqueIdentifier>{9de9927f-af8d-45d2-aaf7-db773c920821}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -38,6 +41,14 @@
     <None Include="public\js\jquery.comjquery-1.9.1.min.js" />
     <None Include="public\css\jquery-ui.min.css" />
     <None Include="public\js\jquery-ui.min.js" />
+    <None Include="public\js\circular_buffer.js" />
+    <None Include="public\views\plugins.html" />
+    <None Include="res\BTNCannibalize.ico">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="res\BTNExhumeCorpses.ico">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ghoul.h">
@@ -67,6 +78,15 @@
     <ClInclude Include="plugins.h">
       <Filter>plugins</Filter>
     </ClInclude>
+    <ClInclude Include="strategy_cmds.h">
+      <Filter>strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="events.h">
+      <Filter>events</Filter>
+    </ClInclude>
+    <ClInclude Include="PluginsDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ghoul.cpp">
@@ -89,6 +109,15 @@
     </ClCompile>
     <ClCompile Include="plugins.cpp">
       <Filter>plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="strategy_cmds.cpp">
+      <Filter>strategy</Filter>
+    </ClCompile>
+    <ClCompile Include="events.cpp">
+      <Filter>events</Filter>
+    </ClCompile>
+    <ClCompile Include="PluginsDialog.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

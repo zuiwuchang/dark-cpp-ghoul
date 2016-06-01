@@ -57,7 +57,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>-Zm128 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm178 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -82,7 +82,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>-Zm120 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm168 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -106,33 +106,43 @@
     <None Include="public\css\bootstrap.min.css" />
     <None Include="public\css\jquery-ui.min.css" />
     <None Include="public\js\bootstrap.min.js" />
+    <None Include="public\js\circular_buffer.js" />
     <None Include="public\js\jquery-ui.min.js" />
     <None Include="public\js\jquery.comjquery-1.9.1.min.js" />
     <None Include="public\views\main.html" />
+    <None Include="public\views\plugins.html" />
     <None Include="ReadMe.txt" />
+    <None Include="res\BTNCannibalize.ico" />
+    <None Include="res\BTNExhumeCorpses.ico" />
     <None Include="res\ghoul.ico" />
     <None Include="res\ghoul.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="events.h" />
     <ClInclude Include="ghoul.h" />
     <ClInclude Include="ghoulDlg.h" />
     <ClInclude Include="plugins.h" />
+    <ClInclude Include="PluginsDialog.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="singleton_cnf.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="strategy_cmds.h" />
     <ClInclude Include="strategy_interface.h" />
     <ClInclude Include="strategy_window.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="events.cpp" />
     <ClCompile Include="ghoul.cpp" />
     <ClCompile Include="ghoulDlg.cpp" />
     <ClCompile Include="plugins.cpp" />
+    <ClCompile Include="PluginsDialog.cpp" />
     <ClCompile Include="singleton_cnf.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="strategy_cmds.cpp" />
     <ClCompile Include="strategy_interface.cpp" />
     <ClCompile Include="strategy_window.cpp" />
   </ItemGroup>

@@ -6,6 +6,7 @@
 #include "strategy_interface.h"
 #include "plugins.h"
 #include "singleton_cnf.h"
+#include "PluginsDialog.h"
 
 // CghoulDlg ∂‘ª∞øÚ
 class CghoulDlg : public CDHtmlDialog
@@ -32,8 +33,7 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
-	DECLARE_MESSAGE_MAP()
-	DECLARE_DHTML_EVENT_MAP()
+	
 public:
 	afx_msg void OnDebugReload();
 
@@ -45,19 +45,33 @@ protected:
 	{
 		return TRUE;
 	}
+	boost::xpressive::wsregex _reg_show;
 	BOOL JsExecute(VARIANT& cmd);
 	VARIANT JsGetCmds();
+	VARIANT JsGetAutocompletes();
 	std::vector<strategy_t> _strategys;
-	DECLARE_DISPATCH_MAP()  
+	
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
 	virtual void OnCancel();
 	//±£¥Ê√¸¡Ó”õ‰õ
 	void SaveCmds();
+
+	void CallJsSetFocus();
+	void CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd);
 public:
 	afx_msg void OnPopRun();
 	afx_msg void OnPopAbout();
 	afx_msg void OnPopExit();
 
-	std::vector<plugins_t> _plugins;
+	boost::unordered_map<std::wstring,plugins_t> _plugins;
 	bool InitPlugins(module_info_t info);
+
+	boost::unordered_map<std::wstring,boost::shared_ptr<CPluginsDialog>> _dlgs;
+
+
+
+	DECLARE_MESSAGE_MAP()
+	DECLARE_DHTML_EVENT_MAP()
+	DECLARE_DISPATCH_MAP()  
+	
 };

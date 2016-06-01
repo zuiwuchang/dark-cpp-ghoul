@@ -2,7 +2,17 @@
 #include <dark-cpp/js/duktape/duktape.hpp>
 #include "singleton_cnf.h"
 
+struct js_result
+{
+	int code;
+	std::string msg;
 
+	js_result()
+	{
+		code = 0;
+	}
+};
+typedef boost::shared_ptr<js_result> js_result_t;
 class plugins
 {
 public:
@@ -24,7 +34,7 @@ protected:
 	bool _has_stop;
 
 	//_has_status = true
-	bool _has_input;
+	bool _has_show;
 	bool _has_autocomplete;
 
 public:
@@ -50,9 +60,9 @@ public:
 		return _has_stop;
 	}
 
-	inline bool has_input()const
+	inline bool has_show()const
 	{
-		return _has_input;
+		return _has_show;
 	}
 	inline bool has_autocomplete()const
 	{
@@ -61,6 +71,15 @@ public:
 
 protected:
 	bool init_modules(module_info_t info);
+	bool register_interface();
+	bool _has_function(duk_context* ctx,duk_idx_t idx,const char* func);
+public:
+	js_result_t start(const std::string& params);
+	js_result_t stop(const std::string& params);
+	js_result_t status();
+	js_result_t show(const std::string& params);
+	void autocomplete(const std::string& params,std::vector<std::string>& outs);
+	
 };
 
 typedef boost::shared_ptr<plugins> plugins_t;

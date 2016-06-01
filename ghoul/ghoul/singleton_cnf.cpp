@@ -14,6 +14,7 @@ singleton_cnf::~singleton_cnf(void)
 }
 void singleton_cnf::load()
 {
+	HINSTANCE hinstance = AfxGetResourceHandle();
 	try
 	{
 		boost::property_tree::ptree tree;
@@ -89,6 +90,7 @@ void singleton_cnf::load()
 	catch(...)
 	{
 	}
+	AfxSetResourceHandle(hinstance);
 	run(_run);
 }
 void singleton_cnf::run(bool ok)
