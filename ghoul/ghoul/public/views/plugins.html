@@ -357,16 +357,9 @@ function init_strategy(){
 		return false;
 	};
 
-	var system_strategy = {};
-	system_strategy.execute = function(cmd){
-		return external.Execute(cmd);
-		//return false;
-	};
-	strategy._strategys.push(system_strategy);
-
 	var view_strategy = {};
 	view_strategy.execute = function(cmd){
-		var reg = new RegExp(/^show$/i);
+		/*var reg = new RegExp(/^show$/i);
 		if(reg.test(cmd)){
 			var str = "";
 			var iter = g_records.begin();
@@ -392,8 +385,9 @@ function init_strategy(){
 			show_msg("",cmd);
 			return true;
 		}
+		*/
 
-		reg = new RegExp(/^clear$/i);
+		var reg = new RegExp(/^clear$/i);
 		if(reg.test(cmd)){
 			g_msgs.clear();
 			show_msg("",cmd);
@@ -401,6 +395,13 @@ function init_strategy(){
 		}
 	};
 	strategy._strategys.push(view_strategy);
+
+	var system_strategy = {};
+	system_strategy.execute = function(cmd){
+		return external.Execute(cmd);
+		//return false;
+	};
+	strategy._strategys.push(system_strategy);
 }
 function get_cmds(){
 	var cmds = [];
