@@ -62,6 +62,7 @@ BEGIN_DISPATCH_MAP(CghoulDlg, CDHtmlDialog)
     DISP_FUNCTION(CghoulDlg, "Execute",  JsExecute, VT_BOOL, VTS_VARIANT) 
 	DISP_FUNCTION(CghoulDlg, "GetCmds",  JsGetCmds, VT_VARIANT,VTS_NONE)
 	DISP_FUNCTION(CghoulDlg, "GetAutocompletes",  JsGetAutocompletes, VT_VARIANT,VTS_NONE)
+	DISP_FUNCTION(CghoulDlg, "GetEmsg",  JsGetEmsg, VT_VARIANT,VTS_NONE)
 END_DISPATCH_MAP()  
 
 CghoulDlg::CghoulDlg(CWnd* pParent /*=NULL*/)
@@ -150,12 +151,28 @@ BOOL CghoulDlg::OnInitDialog()
 
 	//初始化插件
 	cnf.foreach_plugins(boost::bind(&CghoulDlg::InitPlugins,this,_1));
-	
+
 
 
 	//註冊 命令算法
 	_strategys.push_back(boost::make_shared<strategy_window>(this));
 	_strategys.push_back(boost::make_shared<strategy_cmds>(this,&_plugins));
+	
+
+	//調用插件 app_start
+	BOOST_FOREACH(auto plugins,_plugins)
+	{
+		js_result_t rs = plugins.second->app_start();
+		CString emsg;
+		if(rs->code != 0)
+		{
+			emsg.Format(L"%s (%d)	%s<br>",
+				plugins.first.c_str(),
+				rs->code,
+				dark::windows::utf::to_utf16(rs->msg).c_str());
+			_emsg += emsg;
+		}
+	}
 	
 	return FALSE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -283,6 +300,12 @@ VARIANT CghoulDlg::JsGetAutocompletes()
 	}
 	return rs;
 }
+VARIANT CghoulDlg::JsGetEmsg()
+{
+	CComVariant rs = _emsg;
+	_emsg = L"";
+	return rs;
+}
 void CghoulDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
@@ -350,7 +373,9 @@ HRESULT CghoulDlg::OnButtonCancel(IHTMLElement* /*pElement*/)
 
 void CghoulDlg::OnDebugReload()
 {
+#ifndef _DEBUG
 	Navigate(L"file:///F:/project/c++/vs2010/dark-cpp-ghoul/ghoul/ghoul/public/views/main1.html");
+#endif
 }
 
 
@@ -420,6 +445,11 @@ void CghoulDlg::OnCancel()
 	BOOST_FOREACH(const auto& dlg,_dlgs)
 	{
 		dlg.second->SaveCmds();
+	}
+
+	BOOST_FOREACH(auto plugins,_plugins)
+	{
+		plugins.second->app_stop();
 	}
 	_plugins.clear();
 

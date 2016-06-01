@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ghoul", "ghoul\ghoul.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "module_example", "module_example\module_example.vcxproj", "{978801B6-EC22-4AF4-856A-7C7A087A7902}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugins-example", "plugins-example\plugins-example.vcxproj", "{990C7E87-0849-470C-A1FC-2ED9D0A4A14F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{978801B6-EC22-4AF4-856A-7C7A087A7902}.Debug|Win32.Build.0 = Debug|Win32
 		{978801B6-EC22-4AF4-856A-7C7A087A7902}.Release|Win32.ActiveCfg = Release|Win32
 		{978801B6-EC22-4AF4-856A-7C7A087A7902}.Release|Win32.Build.0 = Release|Win32
+		{990C7E87-0849-470C-A1FC-2ED9D0A4A14F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{990C7E87-0849-470C-A1FC-2ED9D0A4A14F}.Debug|Win32.Build.0 = Debug|Win32
+		{990C7E87-0849-470C-A1FC-2ED9D0A4A14F}.Release|Win32.ActiveCfg = Release|Win32
+		{990C7E87-0849-470C-A1FC-2ED9D0A4A14F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

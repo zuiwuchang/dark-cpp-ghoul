@@ -216,6 +216,11 @@ $(document).ready(function() {
 			g_cmds.push(str);
 		}
 	});
+
+	var emsg = external.GetEmsg();
+	if(emsg != ""){
+		show_msg(emsg,"");
+	}
 });
 function set_focus(){
 	$("#idInputCmd").focus();

@@ -43,7 +43,7 @@ bool plugins::init(module_info_t node)
 		duk_push_global_object(ctx);
 		++pop;
 		
-		duk_get_prop_string(ctx, -1, "register");
+		duk_get_prop_string(ctx, -1, "register_obj");
 		if(!duk_is_function(ctx,-1))
 		{
 			return false;
@@ -67,6 +67,17 @@ bool plugins::init(module_info_t node)
 	else
 	{
 		//dll 插件
+		duk_push_global_object(ctx);
+		dark::js::duktape::scoped_pop pop(ctx,1);
+
+		node->init_module(ctx);
+
+		//註冊 插件 接口
+		if(!register_interface())
+		{
+			return false;
+		}
+		duk_put_prop_string(ctx,-2,"g_instance");
 	}
 	
 #ifdef _DEBUG
@@ -156,6 +167,82 @@ bool plugins::init_modules(module_info_t info)
 	duk_dump_context_stdout(ctx);
 #endif
 	return false;
+}
+js_result_t plugins::app_start()
+{
+	js_result_t rs = boost::make_shared<js_result>();
+	if(has_start())
+	{
+#ifdef _DEBUG
+	puts("plugins::app_start");
+#endif
+		duk_context* ctx = _ctx;
+		dark::js::duktape::scoped_pop pop(ctx,3);
+		duk_push_global_object(ctx);
+		duk_get_prop_string(ctx, -1, "g_instance");
+		duk_get_prop_string(ctx, -1, "app_start");
+		duk_get_prop_string(ctx, -3, "g_instance");
+		if(duk_pcall_method(ctx,0))
+		{
+			rs->code = -1;
+			rs->msg = duk_to_string(ctx, -1);
+		}
+		else
+		{
+			if(duk_is_object(ctx,-1))
+			{
+				duk_get_prop_string(ctx, -1, "code");
+				++pop;
+				rs->code = duk_to_int(ctx,-1);
+				duk_get_prop_string(ctx, -2, "msg");
+				++pop;
+				rs->msg = duk_to_string(ctx,-1);
+			}
+		}
+#ifdef _DEBUG
+		pop.reset();
+		duk_dump_context_stdout(ctx);
+#endif
+	}
+	return rs;
+}
+js_result_t plugins::app_stop()
+{
+	js_result_t rs = boost::make_shared<js_result>();
+	if(has_start())
+	{
+#ifdef _DEBUG
+	puts("plugins::app_stop");
+#endif
+		duk_context* ctx = _ctx;
+		dark::js::duktape::scoped_pop pop(ctx,3);
+		duk_push_global_object(ctx);
+		duk_get_prop_string(ctx, -1, "g_instance");
+		duk_get_prop_string(ctx, -1, "app_stop");
+		duk_get_prop_string(ctx, -3, "g_instance");
+		if(duk_pcall_method(ctx,0))
+		{
+			rs->code = -1;
+			rs->msg = duk_to_string(ctx, -1);
+		}
+		else
+		{
+			if(duk_is_object(ctx,-1))
+			{
+				duk_get_prop_string(ctx, -1, "code");
+				++pop;
+				rs->code = duk_to_int(ctx,-1);
+				duk_get_prop_string(ctx, -2, "msg");
+				++pop;
+				rs->msg = duk_to_string(ctx,-1);
+			}
+		}
+#ifdef _DEBUG
+		pop.reset();
+		duk_dump_context_stdout(ctx);
+#endif
+	}
+	return rs;
 }
 js_result_t plugins::start(const std::string& params)
 {

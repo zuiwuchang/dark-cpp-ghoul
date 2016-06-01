@@ -49,6 +49,7 @@ protected:
 	BOOL JsExecute(VARIANT& cmd);
 	VARIANT JsGetCmds();
 	VARIANT JsGetAutocompletes();
+	VARIANT JsGetEmsg();
 	std::vector<strategy_t> _strategys;
 	
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
@@ -63,6 +64,7 @@ public:
 	afx_msg void OnPopAbout();
 	afx_msg void OnPopExit();
 
+	CString _emsg;
 	boost::unordered_map<std::wstring,plugins_t> _plugins;
 	bool InitPlugins(module_info_t info);
 

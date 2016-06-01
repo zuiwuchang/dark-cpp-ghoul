@@ -74,6 +74,8 @@ protected:
 	bool register_interface();
 	bool _has_function(duk_context* ctx,duk_idx_t idx,const char* func);
 public:
+	js_result_t app_start();
+	js_result_t app_stop();
 	js_result_t start(const std::string& params);
 	js_result_t stop(const std::string& params);
 	js_result_t status();

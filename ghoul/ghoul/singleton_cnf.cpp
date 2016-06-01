@@ -83,6 +83,11 @@ void singleton_cnf::load()
 				{
 					continue;
 				}
+				node->init_module = (init_module_t)GetProcAddress(node->module,"register_obj");
+				if(!node->init_module)
+				{
+					continue;
+				}
 			}
 			_plugins.push_back(node);
 		}
