@@ -171,7 +171,7 @@ bool plugins::init_modules(module_info_t info)
 js_result_t plugins::app_start()
 {
 	js_result_t rs = boost::make_shared<js_result>();
-	if(has_start())
+	if(has_app_start())
 	{
 #ifdef _DEBUG
 	puts("plugins::app_start");
@@ -209,7 +209,7 @@ js_result_t plugins::app_start()
 js_result_t plugins::app_stop()
 {
 	js_result_t rs = boost::make_shared<js_result>();
-	if(has_start())
+	if(has_app_stop())
 	{
 #ifdef _DEBUG
 	puts("plugins::app_stop");
