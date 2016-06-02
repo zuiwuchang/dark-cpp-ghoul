@@ -363,7 +363,7 @@ js_result_t plugins::status()
 js_result_t plugins::show(const std::string& params)
 {
 	js_result_t rs = boost::make_shared<js_result>();
-	if(has_stop())
+	if(has_show())
 	{
 #ifdef _DEBUG
 	puts("plugins::show");
