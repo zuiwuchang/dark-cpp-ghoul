@@ -193,25 +193,20 @@ bool strategy_db::foreach_dbs(database_ptr_t node,bool path,std::stringstream& o
 }
 void strategy_db::autocomplete(const std::string& cmd,std::vector<std::string>& out)
 {
-	std::string tmp = cmd;
-	boost::algorithm::to_lower(tmp);
-	if(boost::starts_with("dbs ",tmp) ||
-		boost::starts_with("dbs	",tmp))
+	
+	if(boost::istarts_with("dbs ",cmd))
 	{
 		out.push_back("dbs ");
 	}
-	else if(boost::starts_with("open ",tmp) ||
-		boost::starts_with("open	",tmp))
+	else if(boost::istarts_with("open ",cmd))
 	{
 		out.push_back("open ");
 	}
-	else if(boost::starts_with("use ",tmp) ||
-		boost::starts_with("use	",tmp))
+	else if(boost::istarts_with("use ",cmd))
 	{
 		out.push_back("use ");
 	}
-	else if(boost::starts_with("close ",tmp) ||
-		boost::starts_with("close	",tmp))
+	else if(boost::istarts_with("close ",cmd))
 	{
 		out.push_back("close ");
 	}

@@ -36,5 +36,9 @@ public:
 	bool use(const std::size_t id,std::string& msg);
 	bool close(std::size_t id,std::string& msg);
 	bool close_all(std::string& msg);
+
+	bool execute_sql(const std::string& sql,std::basic_ostream<char>& ostream);
+	static int singleton_dbs::sql_callback(void*lparam,int columns, char **values,char **name);
+	static std::string singleton_dbs::html_encryption(std::string str);
 };
 

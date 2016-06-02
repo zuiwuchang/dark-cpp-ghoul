@@ -45,6 +45,9 @@
     <ClInclude Include="database.h">
       <Filter>db</Filter>
     </ClInclude>
+    <ClInclude Include="strategy_sql.h">
+      <Filter>strategy</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -67,6 +70,9 @@
     </ClCompile>
     <ClCompile Include="database.cpp">
       <Filter>db</Filter>
+    </ClCompile>
+    <ClCompile Include="strategy_sql.cpp">
+      <Filter>strategy</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

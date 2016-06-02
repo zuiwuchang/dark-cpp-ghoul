@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>食屍鬼</title>
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="../css/bootstrap.min.css">
+
+<!-- 可选的Bootstrap主题文件（一般不用引入） -->
+<link rel="stylesheet" href="../css/bootstrap-theme.min.css">
+
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="../js/jquery.comjquery-1.9.1.min.js"></script>
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="../js/bootstrap.min.js"></script>
+
+<!-- jquery ui -->
+<link rel="stylesheet" type="text/css" href="../css/jquery-ui.min.css">
+<script type="text/javascript" src="../js/jquery.comjquery-1.9.1.min.js"></script>
+
+<!-- circular_buffer -->
+<script type="text/javascript" src="../js/circular_buffer.js"></script>
+
+
+<style type="text/css">
+body {
+	background-color:#666;
+	color:#CCC;
+	font-size:18px;
+}
+.view_input{
+	margin-top: 10px;
+}
+
+
+#idSpanCmd{
+	cursor: pointer;
+}
+
+#idView{
+	width: 100%;
+	height: 100px;
+
+	background-color: #002029;
+	color: #DDE1E1;
+	padding-left: 8px;
+	padding-right: 8px;
+
+	border-radius: 9px;
+	border: none;
+
+	font-size: 24px;
+
+	white-space:pre-wrap;  
+	white-space:-moz-pre-wrap;  
+	white-space:-pre-wrap;  
+	white-space:-o-pre-wrap;  
+	word-wrap:break-word;  
+}
+.view_date{
+	color: #D63484;
+	display: block;
+}
+.view_cmd{
+	color: #738A00;
+	display: block;
+}
+.view_msg{
+	font-size: 22px;
+	display: block;
+}
+.window{
+	padding: 20px;
+}
+</style>
+</head>
+<body>
+<div class="window">
+
+<pre id="idView">
+<table border="1px;">
+	<tr><th style="padding:10px;">col 0</th><th>col 1</th></tr>
+	<tr><td>row 0</td><td>row 0</td></tr>
+	<tr><td>row 1</td><td>row 1</td></tr>
+
+</table>
+</pre>
+
+
+<div class="form-group has-success has-feedback view_input">
+	<div class="input-group">
+		<span class="input-group-addon" id="idSpanCmd">命令：</span>
+		<input type="text" class="form-control" id="idInputCmd">
+	</div>
+</div>
+		
+</div>
+<script type="text/javascript">
+var DARK_RECORDS_MAX_LENGTH = 50;
+var DARK_MSGS_MAX_LENGTH = 512;
+
+var g_strategy = {};
+var g_records = circular_buffer.create({
+	Max:DARK_RECORDS_MAX_LENGTH
+});
+var g_iterator = null;
+var g_msgs = circular_buffer.create({
+	Max:DARK_MSGS_MAX_LENGTH
+});
+var g_cmds = [
+	"screen max",
+	"screen hide",
+	"screen restore",
+	"screen full",
+	"exit",
+	
+	"clear",
+];
+
+$(document).ready(function() {
+	$("#idSpanCmd").click(function(){
+		$("#idInputCmd").focus();
+	});
+	
+	$("#idInputCmd").keydown(function(e){
+
+		if(e.keyCode==13){
+			//回車
+			var cmd = $("#idInputCmd").val();
+			cmd = $.trim(cmd);
+			execute(cmd);
+		}else if(e.keyCode == 9){
+			//tab
+			var cmds = [];
+			var node = $("#idInputCmd");
+			var str = node.val();
+			str = $.trim(str);
+			if(str == ""){
+				return true;
+			}
+			//匹配默認命令
+			for (var i = 0; i < g_cmds.length; ++i) {
+				var cmd = $.trim(g_cmds[i]);
+				
+				if(new RegExp("^" + str,"i").test(cmd)){
+					cmds.push(g_cmds[i]);
+				}
+			}
+			//匹配 插件命令
+			/*var json = JSON.parse(external.GetAutocompletes(str));
+			$.each(json, function(i,str){
+				if(typeof(str) == "string"){
+					cmds.push(str);
+				}
+			});
+			*/
+
+			if(cmds.length == 0){
+				return false;
+			}else if(cmds.length == 1){
+				node.val(cmds[0]);
+				return false;
+			}else{
+				var strs = "<i>";
+				for (var i = 0; i < cmds.length; ++i) {
+					if(i !=0){
+						strs += "    ";
+					}
+					strs += cmds[i];
+				}
+				strs += "</i>";
+				show_text(strs,"");
+				var find = false;
+				var c;
+				for(var i = str.length;;++i){
+					for (var j = 0; j < cmds.length; ++j) {
+						if(i >= cmds[j].length){
+							find = true;
+							break;
+						}
+						if(j ==0){
+							c = cmds[j][i].toLowerCase();
+						}else if(c != cmds[j][i].toLowerCase()){
+							find = true;
+							break;
+						}
+					}
+					if(find){
+						str = cmds[0].substr(0,i);
+						$("#idInputCmd").val(str);
+						break;
+					}
+				}
+			}
+			return false;
+		}else if(e.keyCode==38){
+			//上翻命令
+			get_pre_cmd();
+		}
+		else if(e.keyCode==40){
+			//下翻命令
+			get_next_cmd();
+		}
+	});
+	$(window).resize(resize);
+	resize();
+
+	init_strategy();
+	//show_text("食屍鬼 write by dark king");
+
+	setTimeout(function(){
+		$("#idInputCmd").focus();
+	},500);
+	/*var json = JSON.parse(external.GetCmds());
+	$.each(json, function(i,str){
+		if(typeof(str) == "string"){
+			g_records.push_back(str);
+		}
+	});*/
+
+});
+function set_focus(){
+	$("#idInputCmd").focus();
+}
+function resize(){
+	var height = $(window).height() - 100;
+	if(height < 100){
+		height = 100;
+	}
+	$("#idView").height(height);
+}
+
+function execute(cmd){
+	if(!g_strategy.execute(cmd)){
+		show_msg("未匹配到任何命令處理器",cmd)
+		return;
+	}
+	$("#idInputCmd").val("");
+	
+	//命令偏移
+	g_iterator = null;
+	//記錄命令
+	var iter = g_records.rbegin();
+	var data = g_records.get_data(iter);
+	
+	if(data == null || data != cmd){
+		g_records.push_back(cmd);
+	}
+}
+function get_pre_cmd(){
+	var data = null;
+	if(g_iterator == null){
+		var iter = g_records.rbegin();
+		data = g_records.get_data(iter);
+		if(data != null){
+			g_iterator = iter;
+		}
+	}else{
+		var iter = g_iterator;
+		var pos = iter._pos;
+		iter._itype = g_records._riterator;
+		if(!g_records.has_next(iter) ||
+			!g_records.next(iter)){
+			iter._pos = pos;
+			return;
+		}
+		data = g_records.get_data(iter);
+	}
+
+	if(data != null){
+		$("#idInputCmd").val(data);
+	}
+}
+function get_next_cmd(){
+	if(g_iterator == null){
+		return;
+	}
+	var data = null;
+	var iter = g_iterator;
+	var pos = iter._pos;
+	iter._itype = g_records._iterator;
+	if(!g_records.has_next(iter) ||
+		!g_records.next(iter)){
+		iter._pos == pos;
+		return;
+	}
+
+	data = g_records.get_data(iter);
+	if(data != null){
+		$("#idInputCmd").val(data);
+	}
+}
+function date_string(d,fmt){
+	var o = {
+		"M+": d.getMonth() + 1, //月
+		"d+": d.getDate(), //日
+		"h+": d.getHours(), //小時 
+		"m+": d.getMinutes(), //分 
+		"s+": d.getSeconds(), //秒 
+		"q+": Math.floor((d.getMonth() + 3) / 3), //季度 
+		"S": d.getMilliseconds() //毫秒 
+	};
+
+	if(/(y+)/.test(fmt)){
+		fmt = fmt.replace(RegExp.$1,
+			(d.getFullYear() + "").substr(4 - RegExp.$1.length)
+			);
+	}
+	for(var k in o){
+		if(new RegExp("(" + k + ")").test(fmt)){
+			fmt = fmt.replace(RegExp.$1,
+				(RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+		}
+	}
+	return fmt;
+}
+function show_text(text){
+	var str = "<span class='view_msg'>" + text + "</span>";
+	g_msgs.push_back(str);
+	show_view();
+}
+function show_msg(msg,cmd){
+	var str = "";
+
+	var date = new Date();
+	
+	str += "<span class='view_date'>" + 
+		date_string(date,"yyyy-MM-dd hh:mm:ss") + 
+		"</span>";
+	if(cmd != undefined){
+		str += "<span class='view_cmd'>" + cmd + "</span>";
+	}
+	str += "<span class='view_msg'>" + msg + "</span>";
+	
+	g_msgs.push_back(str);
+	show_view();
+}
+function show_view(){
+	var iter = g_msgs.begin();
+	var data = g_msgs.get_data(iter);
+	var str = "";
+	while(data != null){
+		str += data;
+		g_msgs.next(iter)
+		data = g_msgs.get_data(iter);
+	}
+
+	var node = $("#idView");
+	node.html(str);
+	node.scrollTop(node[0].scrollHeight - node.height());
+}
+
+function init_strategy(){
+	var strategy = g_strategy;
+	strategy._strategys = [];
+	strategy.execute = function(cmd){
+		for (var i = 0; i < this._strategys.length; ++i) {
+			var obj = this._strategys[i];
+			if(obj.execute(cmd)){
+				return true;
+			}
+		}
+		return false;
+	};
+
+	var view_strategy = {};
+	view_strategy.execute = function(cmd){
+		/*var reg = new RegExp(/^show$/i);
+		if(reg.test(cmd)){
+			var str = "";
+			var iter = g_records.begin();
+			var data = g_records.get_data(iter);
+			while(data != null){
+				str += data + ","
+				g_records.next(iter)
+				data = g_records.get_data(iter);
+			}
+			show_msg(str,cmd);
+			return true;
+		}
+
+		reg = new RegExp(/^get_cmds$/i);
+		if(reg.test(cmd)){
+			var str = get_cmds();
+			show_msg(str,cmd);
+			return true;
+		}
+
+		reg = new RegExp(/^push/i);
+		if(reg.test(cmd)){
+			show_msg("",cmd);
+			return true;
+		}
+		*/
+
+		var reg = new RegExp(/^clear$/i);
+		if(reg.test(cmd)){
+			g_msgs.clear();
+			show_msg("",cmd);
+			return true;
+		}
+	};
+	strategy._strategys.push(view_strategy);
+
+	var system_strategy = {};
+	system_strategy.execute = function(cmd){
+		//return external.Execute(cmd);
+		return false;
+	};
+	strategy._strategys.push(system_strategy);
+}
+function get_cmds(){
+	var cmds = [];
+	var iter = g_records.begin();
+	var data = g_records.get_data(iter);
+	while(data != null){
+		cmds.push(data);
+		g_records.next(iter)
+		data = g_records.get_data(iter);
+	}
+	var str = JSON.stringify(cmds);
+	return str;
+}
+</script>
+</body>
+</html>
