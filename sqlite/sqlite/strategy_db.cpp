@@ -35,6 +35,16 @@ strategy_db::strategy_db(void)
 		("all","a",dark::windows::utf::to_utf8(L"關閉全部數據庫"),"")
 		("help","h",dark::windows::utf::to_utf8(L"顯示使用說明"),"")
 		;
+
+	_cmds.push_back("open -f=");
+	_cmds.push_back("open -h");
+	_cmds.push_back("dbs -n");
+	_cmds.push_back("dbs -h");
+	_cmds.push_back("use -i=");
+	_cmds.push_back("use -h");
+	_cmds.push_back("close -i=0");
+	_cmds.push_back("close -a");
+	_cmds.push_back("close -h");
 }
 
 
@@ -193,22 +203,5 @@ bool strategy_db::foreach_dbs(database_ptr_t node,bool path,std::stringstream& o
 }
 void strategy_db::autocomplete(const std::string& cmd,std::vector<std::string>& out)
 {
-	
-	if(boost::istarts_with("dbs ",cmd))
-	{
-		out.push_back("dbs ");
-	}
-	else if(boost::istarts_with("open ",cmd))
-	{
-		out.push_back("open ");
-	}
-	else if(boost::istarts_with("use ",cmd))
-	{
-		out.push_back("use ");
-	}
-	else if(boost::istarts_with("close ",cmd))
-	{
-		out.push_back("close ");
-	}
-	
+	singleton_autocomplete::get_mutable_instance().get_cmds(cmd,_cmds,out,true);
 }

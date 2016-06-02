@@ -31,6 +31,8 @@
 
 #include <dark-cpp/windows/strings/utf.hpp>
 #include <dark-cpp/strings/options.hpp>
+#include <dark-cpp/strings/autocomplete.hpp>
+typedef boost::serialization::singleton<dark::strings::autocomplete_t> singleton_autocomplete;
 
 #include <duktape-1.5.0/duktape.h>
 #ifdef _DEBUG
