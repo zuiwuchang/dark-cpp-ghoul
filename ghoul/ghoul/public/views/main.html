@@ -139,13 +139,7 @@ $(document).ready(function() {
 			if(str == ""){
 				return true;
 			}
-			for (var i = 0; i < g_cmds.length; ++i) {
-				var cmd = $.trim(g_cmds[i]);
-				
-				if(new RegExp("^" + str,"i").test(cmd)){
-					cmds.push(g_cmds[i]);
-				}
-			}
+			var cmds = filter_autocompletes(str,g_cmds);
 			if(cmds.length == 0){
 				return false;
 			}else if(cmds.length == 1){
@@ -222,6 +216,39 @@ $(document).ready(function() {
 		show_msg(emsg,"");
 	}
 });
+function filter_autocompletes(str,cmds){
+	//替換 特殊符號
+	str = str.replace(new RegExp(/\\/),"\\\\");
+	str = str.replace(new RegExp(/\|/),"\\|");
+	str = str.replace(new RegExp(/\^/),"\\^");
+
+	str = str.replace(new RegExp(/\$/),"\\$");
+	str = str.replace(new RegExp(/\*/),"\\*");
+	str = str.replace(new RegExp(/\+/),"\\+");
+
+	str = str.replace(new RegExp(/\?/),"\\?");
+	str = str.replace(new RegExp(/\(/),"\\(");
+	str = str.replace(new RegExp(/\)/),"\\)");
+
+	str = str.replace(new RegExp(/\./),"\\.");
+	str = str.replace(new RegExp(/\[/),"\\[");
+	str = str.replace(new RegExp(/\]/),"\\]");
+
+	str = str.replace(new RegExp(/\-/),"\\-");
+	str = str.replace(new RegExp(/\{/),"\\{");
+	str = str.replace(new RegExp(/\}/),"\\}");
+
+	//匹配命令
+	var outs = [];
+	for (var i = 0; i < cmds.length; ++i) {
+		var cmd = $.trim(cmds[i]);
+		
+		if(new RegExp("^" + str,"i").test(cmd)){
+			outs.push(cmds[i]);
+		}
+	}
+	return outs;
+}
 function set_focus(){
 	$("#idInputCmd").focus();
 }
