@@ -13,6 +13,7 @@ public:
 
 protected:
 	std::vector<std::string> _cmds;
-	void replace_escape(const std::string& in,std::string& out);
+
+	bool autocomplete_str(const std::string& str,std::vector<std::string>& out);
 };
 

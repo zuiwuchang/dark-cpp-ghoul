@@ -26,5 +26,7 @@ protected:
 	dark::strings::options_t _opts_close;
 
 	bool foreach_dbs(database_ptr_t node,bool path,std::stringstream& ostream);
+
+	std::vector<std::string> _cmds;
 };
 
