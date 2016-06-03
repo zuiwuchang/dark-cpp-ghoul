@@ -119,6 +119,15 @@ var g_cmds = [
 ];
 
 $(document).ready(function() {
+	var browser=navigator.appName
+	var b_version=navigator.appVersion
+	var version=parseFloat(b_version)
+	if(browser == "Microsoft Internet Explorer" && version < 5){
+		alert("瀏覽器版本太低無法運行食屍鬼\n請確認IE版本至少到9.0");
+		external.Exit();
+		return;
+	}
+
 	$("#idSpanCmd").click(function(){
 		$("#idInputCmd").focus();
 	});

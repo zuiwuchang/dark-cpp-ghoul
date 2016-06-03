@@ -10,7 +10,7 @@ public:
 	~strategy_db(void);
 
 	virtual bool execute(const std::string& cmd,std::string& out);
-	virtual void autocomplete(const std::string& cmd,std::vector<std::string>& out);
+	virtual void autocomplete(const std::string& cmd,std::vector<js_autocomplete_node_t>& out);
 
 protected:
 	boost::xpressive::sregex _reg_open;
@@ -28,5 +28,6 @@ protected:
 	bool foreach_dbs(database_ptr_t node,bool path,std::stringstream& ostream);
 
 	std::vector<std::string> _cmds;
+	bool autocomplete_str(const std::string& str,std::vector<js_autocomplete_node_t>& out);
 };
 

@@ -84,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="database.h" />
+    <ClInclude Include="public.h" />
     <ClInclude Include="singleton_dbs.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="strategy_db.h" />

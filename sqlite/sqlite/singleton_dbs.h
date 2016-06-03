@@ -24,7 +24,7 @@ protected:
 	std::vector<strategy_t> _strategys;
 public:
 	bool execute(const std::string& cmd,std::string& out);
-	void autocomplete(const std::string& cmd,std::vector<std::string>& out);
+	void autocomplete(const std::string& cmd,std::vector<js_autocomplete_node_t>& out);
 
 public:
 	bool open(const std::string& path,const std::string& key,std::string& msg);
@@ -38,7 +38,6 @@ public:
 	bool close_all(std::string& msg);
 
 	bool execute_sql(const std::string& sql,std::basic_ostream<char>& ostream);
-	static int singleton_dbs::sql_callback(void*lparam,int columns, char **values,char **name);
-	static std::string singleton_dbs::html_encryption(std::string str);
+	void get_tables(std::vector<std::string>& tables);
 };
 

@@ -24,6 +24,10 @@ public:
 	{
 		return _con;
 	}
+
+	void get_tables(std::vector<std::string>& tables);
+	bool execute_sql(std::string sql,std::basic_ostream<char>& ostream);
+	static std::string html_encryption(std::string str);
 };
 typedef boost::shared_ptr<database> database_ptr_t;
 

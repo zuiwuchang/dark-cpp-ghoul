@@ -63,6 +63,7 @@ BEGIN_DISPATCH_MAP(CghoulDlg, CDHtmlDialog)
 	DISP_FUNCTION(CghoulDlg, "GetCmds",  JsGetCmds, VT_VARIANT,VTS_NONE)
 	DISP_FUNCTION(CghoulDlg, "GetAutocompletes",  JsGetAutocompletes, VT_VARIANT,VTS_NONE)
 	DISP_FUNCTION(CghoulDlg, "GetEmsg",  JsGetEmsg, VT_VARIANT,VTS_NONE)
+	DISP_FUNCTION(CghoulDlg, "Exit",  JsExit, VT_EMPTY,VTS_NONE)
 END_DISPATCH_MAP()  
 
 CghoulDlg::CghoulDlg(CWnd* pParent /*=NULL*/)
@@ -305,6 +306,10 @@ VARIANT CghoulDlg::JsGetEmsg()
 	CComVariant rs = _emsg;
 	_emsg = L"";
 	return rs;
+}
+void CghoulDlg::JsExit()
+{
+	PostMessage(WM_CLOSE);
 }
 void CghoulDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {

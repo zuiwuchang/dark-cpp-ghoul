@@ -42,6 +42,8 @@ duk_ret_t native_show(duk_context *ctx) {
 		duk_put_prop_string(ctx, -2, "code");
 		duk_push_string(ctx, str.c_str());
 		duk_put_prop_string(ctx, -2, "msg");
+		duk_push_int(ctx, DARK_PLUGINS_SHOW_SHOWCODE_NO_CODE);
+		duk_put_prop_string(ctx, -2, "showcode");
 	}
 	else
 	{
@@ -56,11 +58,22 @@ duk_ret_t native_autocomplete(duk_context *ctx) {
 	std::string cmd = duk_require_string(ctx, 0);
 
 	duk_push_array(ctx);
-	std::vector<std::string> outs;
+	std::vector<js_autocomplete_node_t> outs;
 	singleton_dbs::get_mutable_instance().autocomplete(cmd,outs);
 	for(std::size_t i=0;i<outs.size();++i)
 	{
-		duk_push_string(ctx, outs[i].c_str());
+		js_autocomplete_node_t node = outs[i];
+		duk_push_object(ctx);
+		{
+			duk_push_uint(ctx,node->code);
+			duk_put_prop_string(ctx, -2, "code");
+
+			duk_push_string(ctx,node->text.c_str());
+			duk_put_prop_string(ctx, -2, "text");
+
+			duk_push_string(ctx,node->cmd.c_str());
+			duk_put_prop_string(ctx, -2, "cmd");
+		}
 		duk_put_prop_index(ctx, -2, i);
 	}
 	return 1;

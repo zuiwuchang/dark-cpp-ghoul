@@ -49,3 +49,5 @@ typedef boost::serialization::singleton<dark::strings::autocomplete_t> singleton
 #endif
 
 #define DARK_EXTERNAL_DECL extern "C" _declspec(dllexport) 
+
+#include "public.h"

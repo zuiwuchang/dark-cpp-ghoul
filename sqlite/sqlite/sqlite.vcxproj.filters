@@ -22,6 +22,9 @@
     <Filter Include="db">
       <UniqueIdentifier>{5645477a-dffb-4577-b669-bfc58a7df22c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="public">
+      <UniqueIdentifier>{7f4d9da8-f11d-48f5-967d-d6da559fd7c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -47,6 +50,9 @@
     </ClInclude>
     <ClInclude Include="strategy_sql.h">
       <Filter>strategy</Filter>
+    </ClInclude>
+    <ClInclude Include="public.h">
+      <Filter>public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

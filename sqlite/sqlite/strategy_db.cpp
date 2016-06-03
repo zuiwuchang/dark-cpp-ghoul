@@ -201,7 +201,18 @@ bool strategy_db::foreach_dbs(database_ptr_t node,bool path,std::stringstream& o
 	}
 	return false;
 }
-void strategy_db::autocomplete(const std::string& cmd,std::vector<std::string>& out)
+void strategy_db::autocomplete(const std::string& cmd,std::vector<js_autocomplete_node_t>& out)
 {
-	singleton_autocomplete::get_mutable_instance().get_cmds(cmd,_cmds,out,true);
+	singleton_autocomplete::get_mutable_instance().get_cmds(cmd,
+		_cmds,
+		boost::bind(&strategy_db::autocomplete_str,this,_1,boost::ref(out)),
+		true);
+}
+bool strategy_db::autocomplete_str(const std::string& str,std::vector<js_autocomplete_node_t>& out)
+{
+	js_autocomplete_node_t node = boost::make_shared<autocomplete_node>();
+	node->code = DARK_PLUGINS_AUTOCOMPLETE_SHOWCODE_DEFAULT;
+	node->text = str;
+	out.push_back(node);
+	return false;
 }

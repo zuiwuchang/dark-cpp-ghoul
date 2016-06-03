@@ -50,6 +50,7 @@ protected:
 	VARIANT JsGetCmds();
 	VARIANT JsGetAutocompletes();
 	VARIANT JsGetEmsg();
+	void JsExit();
 	std::vector<strategy_t> _strategys;
 	
 	virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
