@@ -164,8 +164,12 @@ BOOL CPluginsDialog::JsExecute(VARIANT& cmd)
 	}
 
 	std::wostringstream out;
-	out<<L"("<<rs->code<<L")	"<<dark::windows::utf::to_utf16(rs->msg);
-	CallJsShowMsg(out.str(),wcs);
+	if(!(rs->showcode & DARK_PLUGINS_SHOW_SHOWCODE_NO_CODE))
+	{
+		out<<L"("<<rs->code<<L")	";
+	}
+	out<<dark::windows::utf::to_utf16(rs->msg);
+	CallJsShowMsg(out.str(),wcs,rs->showcode);
 	return TRUE;
 }
 void CPluginsDialog::CallJsSetFocus()
@@ -178,16 +182,18 @@ void CPluginsDialog::CallJsSetFocus()
 	spScript.Invoke0(L"set_focus");
 }
 
-void CPluginsDialog::CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd)
+void CPluginsDialog::CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd,std::size_t showcode)
 {
 	CComDispatchDriver spScript;
 	if(S_OK != m_spHtmlDoc->get_Script(&spScript))
 	{
 		return;
 	}
-	CComVariant varMsg = msg.c_str();
-	CComVariant varCmd = cmd.c_str();
-	spScript.Invoke2(L"show_msg",&varMsg,&varCmd);
+	CComVariant params[3] = {showcode,
+		cmd.c_str(),
+		msg.c_str()
+	};
+	spScript.InvokeN(L"show_msg",params,3);
 }
 
 VARIANT CPluginsDialog::JsGetAutocompletes(VARIANT& cmd)
@@ -196,13 +202,17 @@ VARIANT CPluginsDialog::JsGetAutocompletes(VARIANT& cmd)
 
 	CString wcs = cmd;
 	std::string utf8 = dark::windows::utf::to_utf8(wcs.GetBuffer());
-	std::vector<std::string> outs;
+	std::vector<js_autocomplete_node_t> outs;
 	_plugins->autocomplete(utf8,outs);
 	
 	Json::Value arrays;
-	BOOST_FOREACH(const std::string& str,outs)
+	BOOST_FOREACH(js_autocomplete_node_t node,outs)
 	{
-		arrays.append(str);
+		Json::Value obj;
+		obj["code"] = node->code;
+		obj["text"] = node->text;
+		obj["cmd"] = node->cmd;
+		arrays.append(obj);
 	}
 	if(!arrays.empty())
 	{

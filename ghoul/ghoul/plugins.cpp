@@ -390,6 +390,9 @@ js_result_t plugins::show(const std::string& params)
 				duk_get_prop_string(ctx, -2, "msg");
 				++pop;
 				rs->msg = duk_to_string(ctx,-1);
+				duk_get_prop_string(ctx, -3, "showcode");
+				++pop;
+				rs->showcode = duk_to_int(ctx,-1);
 			}
 		}
 #ifdef _DEBUG
@@ -399,7 +402,7 @@ js_result_t plugins::show(const std::string& params)
 	}
 	return rs;
 }
-void plugins::autocomplete(const std::string& params,std::vector<std::string>& outs)
+void plugins::autocomplete(const std::string& params,std::vector<js_autocomplete_node_t>& outs)
 {
 	if(!has_autocomplete())
 	{
@@ -422,7 +425,44 @@ void plugins::autocomplete(const std::string& params,std::vector<std::string>& o
 			for(duk_size_t i=0;i<duk_get_length(ctx,-1);++i)
 			{
 				duk_get_prop_index(ctx,-1,i);
-				outs.push_back(duk_to_string(ctx,-1));
+				if(duk_is_string(ctx,-1))
+				{
+					//×Ö·û´®
+					js_autocomplete_node_t node = boost::make_shared<autocomplete_node>();
+					node->text = duk_to_string(ctx,-1);
+					outs.push_back(node);
+					
+				}
+				else if(duk_is_object(ctx,-1))
+				{
+					//obj				
+					js_autocomplete_node_t node = boost::make_shared<autocomplete_node>();
+					duk_get_prop_string(ctx,-1,"code");
+					if(duk_is_number(ctx,-1))
+					{
+						node->code = duk_to_uint(ctx,-1);
+					}
+					duk_pop(ctx);
+
+					duk_get_prop_string(ctx,-1,"text");
+					if(duk_is_string(ctx,-1))
+					{
+						node->text = duk_to_string(ctx,-1);
+					}
+					duk_pop(ctx);
+
+					if(node->code & DARK_PLUGINS_AUTOCOMPLETE_SHOWCODE_CMD)
+					{
+						duk_get_prop_string(ctx,-1,"cmd");
+						if(duk_is_string(ctx,-1))
+						{
+							node->cmd = duk_to_string(ctx,-1);
+						}
+						duk_pop(ctx);
+					}
+					//push
+					outs.push_back(node);
+				}
 				duk_pop(ctx);
 			}
 		}

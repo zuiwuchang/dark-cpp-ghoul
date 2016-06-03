@@ -43,7 +43,7 @@ protected:
 	VARIANT JsGetCmds();
 	BOOL JsExecute(VARIANT& cmd);
 	VARIANT JsGetAutocompletes(VARIANT& cmd);
-	void CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd);
+	void CallJsShowMsg(const std::wstring& msg,const std::wstring& cmd,std::size_t showcode);
 public:
 	void CallJsSetFocus();
 protected:
