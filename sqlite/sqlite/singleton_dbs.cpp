@@ -157,7 +157,8 @@ bool singleton_dbs::execute_sql(const std::string& sql,std::basic_ostream<char>&
     else
     {
 		ostream<<emsg;
-    }
+		DARK_SAFE_DELETE(emsg);
+	}
 	return false;
 }
 int singleton_dbs::sql_callback(void*lparam,int columns, char **values,char **name)
